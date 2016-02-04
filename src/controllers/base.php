@@ -2,6 +2,7 @@
 
 namespace TienRocker\Auth\Controllers;
 
+use Phalcon\Config;
 use Phalcon\Mvc\Controller;
 
 class Base extends Controller
@@ -22,6 +23,11 @@ class Base extends Controller
     public function initialize()
     {
         global $config;
+        if (!isset($config->hybrid)) {
+            $_config_hybrid = include dirname(dirname(__FILE__)) . '/config/hybrid.php';
+            $_config_hybrid['base_url'] = $config->application->baseUri . $this->router->getRewriteUri();
+            $config->hybrid = new Config($_config_hybrid);
+        }
         $this->hybrid_auth = new \Hybrid_Auth($config->hybrid->toArray());
     }
 }

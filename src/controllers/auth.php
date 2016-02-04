@@ -11,8 +11,10 @@ class Auth extends Base
     public function login($provider = null)
     {
         switch ($provider) {
+            case 'google':
             case 'twitter':
-                $this->twitter();
+            case 'facebook':
+                $this->hybrid($provider);
                 break;
             default:
                 $this->normal();
@@ -53,26 +55,33 @@ class Auth extends Base
         }
     }
 
-    public function twitter()
+    public function hybrid($provider)
     {
+        if (isset($_REQUEST['hauth_start']) || isset($_REQUEST['hauth_done'])) {
+            \Hybrid_Endpoint::process();
+        }
+
         try {
+
             // create an instance for Hybridauth with the configuration file path as parameter
 
             // try to authenticate the user with twitter,
             // user will be redirected to Twitter for authentication,
             // if he already did, then Hybridauth will ignore this step and return an instance of the adapter
-            $this->provider = $this->hybrid_auth->authenticate('Twitter');
-
+            $this->provider = $this->hybrid_auth->authenticate(ucfirst($provider));
+            var_dump($this->provider);
+            die;
             // get the user profile
             $twitter_user_profile = $this->provider->getUserProfile();
-
+            var_dump($twitter_user_profile);
+            die;
             $this->session->set('auth-identity', array(
                 'id' => $twitter_user_profile->identifier,
                 'username' => $twitter_user_profile->displayName,
                 'pic' => $twitter_user_profile->photoURL
             ));
 
-            return $this->response->redirect('');
+            //return $this->response->redirect('');
 
         } catch (\Exception $e) {
             // Display the recived error,
@@ -94,8 +103,7 @@ class Auth extends Base
                     echo "Missing provider application credentials.";
                     break;
                 case 5 :
-                    echo "Authentification failed. "
-                        . "The user has canceled the authentication or the provider refused the connection.";
+                    echo "Authentification failed. The user has canceled the authentication or the provider refused the connection.";
                     break;
                 case 6 :
                     echo "User profile request failed. Most likely the user is not connected to the provider and he should authenticate again.";
@@ -109,10 +117,7 @@ class Auth extends Base
                     echo "Provider does not support this feature.";
                     break;
             }
-
-            // well, basically your should not display this to the end user, just give him a hint and move on..
-            echo "<br /><br /><b>Original error message:</b> " . $e->getMessage();
-            die();
         }
+
     }
 }
