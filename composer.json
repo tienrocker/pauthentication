@@ -10,7 +10,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "\\TienRocker\\Auth\\": "src"
+      "TienRocker\\Auth\\": "src/"
     }
   }
 }
